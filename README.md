@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🌍 Homelab Weather Map
+# 🌍 Global Weather Map
 
 **Dashboard interativo para monitoramento do clima global em tempo real, combinando dados de múltiplas APIs.**
 
@@ -74,7 +74,7 @@ Para garantir dados mais precisos e evitar falhas se um serviço cair, o sistema
 ## 🏗️ Arquitetura do Projeto
 
 ```
-homelab-weather-map/
+global-weather-map/
 ├── public/
 │   ├── index.html          # Interface principal (HTML)
 │   ├── app.js              # Lógica do mapa, painéis e recepção do SSE
@@ -118,8 +118,8 @@ homelab-weather-map/
 
 ```bash
 # Clonar o repositório
-git clone https://github.com/danielsmendonca/homelab-weather-map.git
-cd homelab-weather-map
+git clone https://github.com/danielsmendonca/global-weather-map.git
+cd global-weather-map
 
 # Instalar as dependências do Node.js
 npm install
