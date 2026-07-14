@@ -1,0 +1,4 @@
+node_modules/
+weather_monitor.db
+*.db
+.env

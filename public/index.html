@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Meteorológico Global</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Roboto+Mono:wght@400;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header id="mainHeader">
+    <div class="header-left">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 32 32" width="28" height="28">
+            <circle cx="16" cy="16" r="6" fill="#FFD54F" stroke="#FFA000" stroke-width="1.5"/>
+            <g stroke="#FFA000" stroke-width="1.8" stroke-linecap="round">
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="16" y1="26" x2="16" y2="30"/>
+              <line x1="2" y1="16" x2="6" y2="16"/>
+              <line x1="26" y1="16" x2="30" y2="16"/>
+              <line x1="6.1" y1="6.1" x2="8.9" y2="8.9"/>
+              <line x1="23.1" y1="23.1" x2="25.9" y2="25.9"/>
+              <line x1="6.1" y1="25.9" x2="8.9" y2="23.1"/>
+              <line x1="23.1" y1="8.9" x2="25.9" y2="6.1"/>
+            </g>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>PAINEL METEOROLÓGICO GLOBAL</h1>
+          <span class="brand-sub">Consenso entre APIs globais · Dados em tempo real</span>
+        </div>
+      </div>
+    </div>
+    <div class="header-center">
+      <div class="live-indicator">
+        <span class="live-dot"></span>
+        <span class="live-text">AO VIVO</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="live-clock" id="liveClock">--:--:--</div>
+      <div class="header-stats" id="headerStats">A carregar...</div>
+    </div>
+  </header>
+
+  <div class="ticker-bar" id="tickerBar">
+    <div class="ticker-content" id="tickerContent"></div>
+  </div>
+
+  <main id="mainContent">
+    <div class="map-container">
+      <div id="map"></div>
+
+      <button class="fullscreen-btn" id="fullscreenBtn" title="Tela Cheia (F)">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/>
+        </svg>
+        <span>TELA CHEIA</span>
+      </button>
+
+      <div class="map-controls">
+        <div class="coord-search">
+          <input type="number" id="latInput" placeholder="Lat" step="0.01" />
+          <input type="number" id="lonInput" placeholder="Lon" step="0.01" />
+          <button id="searchBtn" title="Buscar">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+          </button>
+          <button id="autoDetectBtn" title="Minha Localização">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg>
+          </button>
+        </div>
+        <div class="layer-toggles">
+          <label><input type="checkbox" id="layerTemp" checked> <span>Temperatura</span></label>
+          <label><input type="checkbox" id="layerWind" checked> <span>Vento</span></label>
+          <label><input type="checkbox" id="layerPrecip" checked> <span>Chuva</span></label>
+          <label><input type="checkbox" id="layerCities" checked> <span>Cidades</span></label>
+        </div>
+      </div>
+
+      <div class="legend" id="legend">
+        <div class="legend-title">TEMPERATURA °C</div>
+        <div class="legend-bar"></div>
+        <div class="legend-labels">
+          <span>-20</span><span>-10</span><span>0</span><span>10</span><span>20</span><span>30</span><span>40</span>
+        </div>
+        <div class="legend-edges">
+          <span>FRIO EXTREMO</span>
+          <span>QUENTE EXTREMO</span>
+        </div>
+      </div>
+
+      <div class="zoom-info" id="zoomInfo">Zoom: 2.5</div>
+    </div>
+
+    <div class="weather-panel" id="weatherPanel">
+      <div class="panel-header">
+        <div>
+          <h2 id="panelLocation">Clique numa cidade</h2>
+          <div class="panel-subtitle" id="panelSubtitle">Detalhes meteorológicos</div>
+        </div>
+        <button class="panel-close" id="panelClose">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="panel-body" id="panelBody">
+        <div class="panel-main-temp" id="panelMainTemp">
+          <span class="main-temp-value" id="pTmpMain">--</span>
+          <span class="main-temp-cond" id="pCondMain">--</span>
+        </div>
+        <div class="panel-grid">
+          <div class="pcard">
+            <div class="pcard-icon">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#ef5350" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg>
+            </div>
+            <div class="pcard-val" id="pTmp">--</div>
+            <div class="pcard-lbl">Temperatura</div>
+          </div>
+          <div class="pcard">
+            <div class="pcard-icon">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#42a5f5" stroke-width="2"><path d="M9.59 4.59A2 2 0 1111 8H2m10.59 11.41A2 2 0 1014 16H2m15.73-8.27A2.5 2.5 0 1119.5 12H2"/></svg>
+            </div>
+            <div class="pcard-val" id="pWnd">--</div>
+            <div class="pcard-lbl">Vento km/h</div>
+          </div>
+          <div class="pcard">
+            <div class="pcard-icon">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#66bb6a" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <div class="pcard-val" id="pDir">--</div>
+            <div class="pcard-lbl">Direção</div>
+          </div>
+          <div class="pcard">
+            <div class="pcard-icon">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#ab47bc" stroke-width="2"><path d="M12 2l-5.5 9h11z"/><path d="M12 18v4"/></svg>
+            </div>
+            <div class="pcard-val" id="pPrs">--</div>
+            <div class="pcard-lbl">Pressão hPa</div>
+          </div>
+          <div class="pcard">
+            <div class="pcard-icon">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#26c6da" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/></svg>
+            </div>
+            <div class="pcard-val" id="pHum">--</div>
+            <div class="pcard-lbl">Humidade</div>
+          </div>
+          <div class="pcard">
+            <div class="pcard-icon">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#5c6bc0" stroke-width="2"><path d="M20 17.58A5 5 0 0018 8h-1.26A8 8 0 104 16.25"/><line x1="8" y1="16" x2="8.01" y2="21"/><line x1="12" y1="18" x2="12.01" y2="23"/><line x1="16" y1="16" x2="16.01" y2="21"/></svg>
+            </div>
+            <div class="pcard-val" id="pPrc">--</div>
+            <div class="pcard-lbl">Precipitação</div>
+          </div>
+        </div>
+        <div class="panel-condition" id="pCond"></div>
+        <div class="panel-trends" id="pTrends"></div>
+        <div class="panel-chart">
+          <div class="chart-title">HISTÓRICO 24h</div>
+          <canvas id="panelChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="loading" class="loading">
+    <div class="loading-inner">
+      <div class="spinner"></div>
+      <p>A processar dados meteorológicos...</p>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/topojson-client.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
